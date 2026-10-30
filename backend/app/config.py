@@ -5,7 +5,9 @@ Copy .env.example to .env and fill in the values.
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +22,13 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.2.0"
     DEBUG: bool = False
     API_PREFIX: str = "/api/v1"
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug(cls, v: Any) -> bool:
+        if isinstance(v, str):
+            return v.lower() in ("true", "1", "yes", "on", "debug", "t")
+        return bool(v)
 
     # Security
     SECRET_KEY: str = "changeme-replace-with-secure-random-secret"
